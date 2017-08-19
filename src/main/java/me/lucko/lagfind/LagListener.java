@@ -20,6 +20,7 @@ import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.inventory.InventoryType;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -97,11 +98,32 @@ public class LagListener implements Listener {
 
         List<Map.Entry<ChunkPosition, Integer>> sorted = data.entrySet().stream()
                 .filter(e -> e.getValue().get() > 0)
-                .sorted((o1, o2) -> {
-                    int i = Integer.compare(o2.getValue().get(), o1.getValue().get());
-                    return i == 0 ? 1 : i;
-                })
                 .map(e -> Maps.immutableEntry(e.getKey(), e.getValue().get()))
+                .sorted(Collections.reverseOrder((o1, o2) -> {
+                    if (o1.equals(o2)) {
+                        return 0;
+                    }
+
+                    int i = Integer.compare(o1.getValue(), o2.getValue());
+                    if (i != 0) {
+                        return i;
+                    }
+
+                    ChunkPosition chunk1 = o1.getKey();
+                    ChunkPosition chunk2 = o2.getKey();
+
+                    i = Integer.compare(chunk1.getX(), chunk2.getX());
+                    if (i != 0) {
+                        return i;
+                    }
+
+                    i = Integer.compare(chunk1.getZ(), chunk2.getZ());
+                    if (i != 0) {
+                        return i;
+                    }
+
+                    return chunk1.getWorld().compareTo(chunk2.getWorld());
+                }))
                 .limit(25)
                 .collect(Collectors.toList());
 

@@ -17,6 +17,8 @@ import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.block.BlockRedstoneEvent;
+import org.bukkit.event.entity.EntitySpawnEvent;
+import org.bukkit.event.entity.SpawnerSpawnEvent;
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.inventory.InventoryType;
 
@@ -37,6 +39,8 @@ public class LagListener implements Listener {
     private final Map<ChunkPosition, AtomicInteger> hoppers = new HashMap<>();
     private final Map<ChunkPosition, AtomicInteger> pistons = new HashMap<>();
     private final Map<ChunkPosition, AtomicInteger> physics = new HashMap<>();
+    private final Map<ChunkPosition, AtomicInteger> mobSpawners = new HashMap<>();
+    private final Map<ChunkPosition, AtomicInteger> spawns = new HashMap<>();
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onRedstone(BlockRedstoneEvent e) {
@@ -68,6 +72,16 @@ public class LagListener implements Listener {
         physics.computeIfAbsent(BlockPosition.of(e.getBlock()).toChunk(), NEW_COUNTER).incrementAndGet();
     }
 
+    @EventHandler(priority = EventPriority.LOWEST) // log attempted spawns (accounts for stacking)
+    public void onMobSpawner(SpawnerSpawnEvent e) {
+        mobSpawners.computeIfAbsent(BlockPosition.of(e.getLocation()).toChunk(), NEW_COUNTER).incrementAndGet();
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onSpawn(EntitySpawnEvent e) {
+        spawns.computeIfAbsent(BlockPosition.of(e.getLocation()).toChunk(), NEW_COUNTER).incrementAndGet();
+    }
+
     public void sendReport(CommandSender sender) {
         Scheduler.runAsync(() -> {
             Players.msg(sender, "&aBuilding report. Please wait...");
@@ -81,14 +95,11 @@ public class LagListener implements Listener {
             appendReport(report, hoppers, "Hoppers");
             appendReport(report, pistons, "Pistons");
             appendReport(report, physics, "Physics");
+            appendReport(report, mobSpawners, "Mob Spawners");
+            appendReport(report, spawns, "Entity Spawns");
 
             String url = PasteUtils.paste("LagFind results", ImmutableList.of(Maps.immutableEntry("data.txt", report.toString())));
             Players.msg(sender, "&aLagFind results url: " + url);
-
-            redstone.clear();
-            hoppers.clear();
-            pistons.clear();
-            physics.clear();
         });
     }
 
@@ -138,6 +149,7 @@ public class LagListener implements Listener {
         }
 
         report.append("\n\n");
+        data.clear();
     }
 
 }

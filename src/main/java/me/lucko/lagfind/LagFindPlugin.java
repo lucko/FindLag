@@ -24,15 +24,15 @@ public class LagFindPlugin extends ExtendedJavaPlugin {
     private final Map<UUID, LagListener> listeners = new HashMap<>();
 
     @Override
-    public void onEnable() {
-        Terminable.of(() -> {
+    public void enable() {
+        bindRunnable(() -> {
             listeners.keySet().forEach(this::stopListening);
             listeners.clear();
-        }).register(this);
+        });
 
         Events.subscribe(PlayerQuitEvent.class)
                 .handler(e -> stopListening(e.getPlayer().getUniqueId()))
-                .register(this);
+                .bindWith(this);
 
         Commands.create()
                 .assertPermission("lagfind.use")

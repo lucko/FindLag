@@ -6,7 +6,6 @@ import me.lucko.helper.plugin.ExtendedJavaPlugin;
 import me.lucko.helper.plugin.ap.Plugin;
 import me.lucko.helper.plugin.ap.PluginDependency;
 import me.lucko.helper.serialize.ChunkPosition;
-import me.lucko.helper.terminable.Terminable;
 import me.lucko.helper.utils.Players;
 
 import org.bukkit.entity.Player;
@@ -37,16 +36,16 @@ public class LagFindPlugin extends ExtendedJavaPlugin {
         Commands.create()
                 .assertPermission("lagfind.use")
                 .handler(c -> {
-                    UUID uuid = c.getSender() instanceof Player ? ((Player) c.getSender()).getUniqueId() : CONSOLE_UUID;
+                    UUID uuid = c.sender() instanceof Player ? ((Player) c.sender()).getUniqueId() : CONSOLE_UUID;
 
                     LagListener listener = stopListening(uuid);
                     if (listener != null) {
-                        listener.sendReport(c.getSender());
+                        listener.sendReport(c.sender());
                         return;
                     }
 
                     startListening(uuid);
-                    Players.msg(c.getSender(), "&aStarted listening. Run /lagfind again to stop.");
+                    Players.msg(c.sender(), "&aStarted listening. Run /lagfind again to stop.");
                 })
                 .register(this, "lagfind");
 
@@ -54,17 +53,13 @@ public class LagFindPlugin extends ExtendedJavaPlugin {
                 .assertPermission("lagfind.tp")
                 .assertPlayer()
                 .handler(c -> {
-                    try {
-                        int x = Integer.parseInt(c.getArg(0));
-                        int z = Integer.parseInt(c.getArg(1));
-                        String world = c.getArg(2);
+                    int x = c.arg(0).parseOrFail(Integer.class);
+                    int z = c.arg(1).parseOrFail(Integer.class);
+                    String world = c.arg(2).parseOrFail(String.class);
 
-                        ChunkPosition pos = ChunkPosition.of(x, z, world);
-                        c.getSender().teleport(pos.getBlock(0, 100, 0).toLocation());
-                        c.getSender().sendMessage("You were teleported to " + pos.toString());
-                    } catch (Exception e) {
-                        c.getSender().sendMessage(e.getClass().getSimpleName() + " - " + e.getMessage());
-                    }
+                    ChunkPosition pos = ChunkPosition.of(x, z, world);
+                    c.sender().teleport(pos.getBlock(0, 100, 0).toLocation());
+                    c.sender().sendMessage("You were teleported to " + pos.toString());
                 })
                 .register(this, "lagtp");
     }

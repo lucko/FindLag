@@ -121,7 +121,7 @@ public class LagListener implements Listener {
                 tiles.computeIfAbsent(chunkPosition, NEW_COUNTER).addAndGet(chunk.getTileEntities().length);
             }
         }
-        
+
         return ImmutableList.of(entities, items, tiles);
     }
 
@@ -157,6 +157,7 @@ public class LagListener implements Listener {
             appendReport(report, physics, "Physics");
             appendReport(report, mobSpawners, "Mob Spawners");
             appendReport(report, spawns, "Entity Spawns");
+            appendReport(report, vehicles, "Vehicles");
 
             appendReport(report, chunkEntityStats.get(0), "Total Entities");
             appendReport(report, chunkEntityStats.get(1), "Total Items");

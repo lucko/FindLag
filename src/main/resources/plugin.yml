@@ -1,0 +1,10 @@
+name: FindLag
+version: ${project.version}
+main: me.lucko.findlag.FindLagPlugin
+description: Find sources of lag
+author: Luck
+
+commands:
+  findlag:
+    description: Find sources of lag
+    aliases: [lagfind, fl]

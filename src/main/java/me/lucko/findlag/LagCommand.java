@@ -26,6 +26,7 @@
 package me.lucko.findlag;
 
 import me.lucko.findlag.report.ReportListener;
+import me.lucko.findlag.utils.ServerUtils;
 import me.lucko.findlag.utils.TextUtils;
 
 import org.bukkit.World;
@@ -69,6 +70,9 @@ public class LagCommand implements CommandExecutor {
             case "tpchunk":
             case "tp":
                 handleTp(sender, label, args);
+                break;
+            case "setmaxplayers":
+                handleMaxPlayers(sender, label, args);
                 break;
             default:
                 sendUsage(sender, label);
@@ -146,6 +150,29 @@ public class LagCommand implements CommandExecutor {
         msgPrefix(sender, "&eTeleported you to chunk x=" + x + ", z=" + z + ", world=" + world.getName());
     }
 
+    private void handleMaxPlayers(CommandSender sender, String label, String[] args) {
+        if (args.length < 2) {
+            sendUsage(sender, label);
+            return;
+        }
+
+        int amount;
+
+        try {
+            amount = Integer.parseInt(args[1]);
+        } catch (NumberFormatException e) {
+            msgPrefix(sender, "&eExpected an integer for <amount>, but got '" + args[1] + "' instead.");
+            return;
+        }
+
+        try {
+            ServerUtils.setMaxPlayers(amount);
+            msgPrefix(sender, "&eSet max players to " + amount);
+        } catch (Exception e) {
+            msgPrefix(sender, "&eUnable to set max players - " + e.getClass().getSimpleName() + " - " + e.getMessage());
+        }
+    }
+
     private void sendUsage(CommandSender sender, String label) {
         msgPrefix(sender, "Running &eFindLag v" + plugin.getDescription().getVersion() + "&7.");
         if (sender.hasPermission("findlag.use")) {
@@ -155,6 +182,9 @@ public class LagCommand implements CommandExecutor {
         }
         if (sender.hasPermission("findlag.tpchunk")) {
             msg(sender, "&8> &7/" + label + " tpchunk <x> <z> <world>");
+        }
+        if (sender.hasPermission("findlag.setmaxplayers")) {
+            msg(sender, "&8> &7/" + label + " setmaxplayers <amount>");
         }
     }
 
